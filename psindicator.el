@@ -5,9 +5,10 @@
 (defun psindicator-password-validator (password)
   )
 
-(defun psindicator--string-result (password-strength)
-  (message "The password '%s' is %s" )
-  )
+(defun psindicator--string-result (password evaluation-function)
+  (message "The password '%s' is %s"
+           password
+           (aref psindicator--strength-to-assessment (funcall evaluation-function password))))
 
 
 (provide 'psindicator)
