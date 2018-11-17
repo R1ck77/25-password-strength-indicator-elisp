@@ -1,0 +1,9 @@
+## Exercise 25: Password Strength Indicator
+
+Elisp solution of exercise 25 from "Exercises for Programmers" by Brian P. Hogan.
+
+Work in progress…
+
+### Usage
+
+Work in progress…
