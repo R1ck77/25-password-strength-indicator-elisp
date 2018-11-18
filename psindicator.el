@@ -19,6 +19,11 @@
 (defun psindicator--is-long? (string)
   (>= (length string) 8))
 
+(defconst psindicator--very-weak-password? '(short (no letters) (no special)))
+(defconst psindicator--weak-password? '(short (no digits) (no special)))
+(defconst psindicator--strong-password? '(long digits letters (no special)))
+(defconst psindicator--very-strong-password? '(long digits letters specials))
+
 (defun psindicator--very-weak-password? (password)
   (and (not (psindicator--is-long? password))
        (not (psindicator--has-letters? password))
@@ -39,7 +44,7 @@
        3))
 
 (defun psindicator--very-strong-password? (password)
-    (and (psindicator--is-long? password)
+  (and (psindicator--is-long? password)
        (psindicator--has-digits? password)
        (psindicator--has-letters? password)
        (psindicator--has-special? password)
