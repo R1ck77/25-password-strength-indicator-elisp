@@ -2,8 +2,8 @@
 
 Elisp solution of exercise 25 from "Exercises for Programmers" by Brian P. Hogan.
 
-Work in progress…
+The basic constraints of the exercise are satisfied.
 
 ### Usage
 
-Work in progress…
+Eval `psindicator.el`, then `M-x psindicator`. Prepare to be blown away!
