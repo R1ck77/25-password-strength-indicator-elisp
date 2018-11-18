@@ -1,5 +1,11 @@
 
-(defconst psindicator--strength-to-assessment ["neither weak or strong" "very weak" "weak" "stong" "very strong"])
+(defconst psindicator--strength-to-assessment ["neither weak or strong" "very weak" "weak" "strong" "very strong"])
+
+(defconst psindicator--tests '(psindicator--very-strong-password?
+                               psindicator--strong-password?
+                               psindicator--weak-password?
+                               psindicator--very-weak-password?
+                               psindicator--undecided-password?))
 
 (defun psindicator--has-digits? (string)
   (string-match "[0-9]" string))
@@ -39,12 +45,16 @@
        (psindicator--has-special? password)
        4))
 
+(defun psindicator--undecided-password? (password)
+  0)
+
 (defun psindicator-password-validator (password)
-  (or (psindicator--very-strong-password? password)
-      (psindicator--strong-password? password)
-      (psindicator--weak-password? password)
-      (psindicator--very-weak-password? password)
-      0))
+  (let ((tests psindicator--tests)
+        (result nil))
+    (while (null result)
+      (setq result (funcall (car tests) password))
+      (setq tests (cdr tests)))
+    result))
 
 (defun psindicator--string-result (password evaluation-function)
   (message "The password '%s' is %s"
