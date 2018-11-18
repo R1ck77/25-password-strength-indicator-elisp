@@ -36,4 +36,9 @@
            password
            (aref psindicator--strength-to-assessment (funcall evaluation-function password))))
 
+(defun psindicator (password)
+  (interactive "MEnter a password: ")
+  (psindicator--string-result password
+                              'psindicator-password-validator))
+
 (provide 'psindicator)
