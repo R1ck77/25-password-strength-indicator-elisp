@@ -59,6 +59,10 @@
         (dolist (f condition-functions result)
           (setq result (and result (funcall f password))))))))
 
+(defun psindicator--test-password (password rules-list)
+  ;;; TODO/FIXME read the rules in order, check the password, go with the flow
+  )
+
 (defun psindicator--create-validator (rules)
   (lambda (x)
     (let ((result t))
