@@ -1,12 +1,6 @@
 
 (defconst psindicator--strength-to-assessment ["neither weak or strong" "very weak" "weak" "strong" "very strong"])
 
-(defconst psindicator--tests '(psindicator--very-strong-password?
-                               psindicator--strong-password?
-                               psindicator--weak-password?
-                               psindicator--very-weak-password?
-                               psindicator--undecided-password?))
-
 (defun psindicator--has-digits? (string)
   (string-match "[0-9]" string))
 
@@ -19,10 +13,16 @@
 (defun psindicator--is-long? (string)
   (>= (length string) 8))
 
-(defconst psindicator--very-weak-password? '(short (no letters) (no special)))
-(defconst psindicator--weak-password? '(short (no digits) (no special)))
+(defconst psindicator--very-weak-password? '(short (no letters) (no special) digits))
+(defconst psindicator--weak-password? '(short (no digits) (no special) letters))
 (defconst psindicator--strong-password? '(long digits letters (no special)))
 (defconst psindicator--very-strong-password? '(long digits letters specials))
+
+(defconst psindicator--tests (list nil
+                                   psindicator--very-weak-password?
+                                   psindicator--weak-password?
+                                   psindicator--strong-password?
+                                   psindicator--very-strong-password?))
 
 (defconst psindicator--rule-function (list
                                       (cons 'short (lambda (x) (not (psindicator--is-long? x))))
@@ -59,45 +59,28 @@
         (dolist (f condition-functions result)
           (setq result (and result (funcall f password))))))))
 
-(defun psindicator--test-password (password rules-list)
+(defun psindicator--enumerate (list)
+  (let ((counter -1))
+    (seq-map (lambda (rule)
+               (setq counter (+ counter 1))
+               (cons rule counter))
+             list)))
+
+(defun psindicator--get-evaluators (rules)
+  (reverse
+   (psindicator--enumerate
+    (seq-map 'psindicator--interpret-rule rules))))
+
+(defun psindicator--test-password (password ordered-rules-list)
   ;;; TODO/FIXME read the rules in order, check the password, go with the flow
-  )
-
-(defun psindicator--create-validator (rules)
-  (lambda (x)
-    (let ((result t))
-     (dolist (rule )))
-    
-))
-
-(defun psindicator--very-weak-password? (password)
-  (and (not (psindicator--is-long? password))
-       (not (psindicator--has-letters? password))
-       (not (psindicator--has-special? password))
-       1))
-
-(defun psindicator--weak-password? (password)
-  (and (not (psindicator--is-long? password))
-       (not (psindicator--has-digits? password))
-       (not (psindicator--has-special? password))
-       2))
-
-(defun psindicator--strong-password? (password)
-  (and (psindicator--is-long? password)
-       (psindicator--has-digits? password)
-       (psindicator--has-letters? password)
-       (not (psindicator--has-special? password))
-       3))
-
-(defun psindicator--very-strong-password? (password)
-  (and (psindicator--is-long? password)
-       (psindicator--has-digits? password)
-       (psindicator--has-letters? password)
-       (psindicator--has-special? password)
-       4))
-
-(defun psindicator--undecided-password? (password)
-  0)
+  (let ((result)
+        (tests ordered-rules-list))
+    (while (not result)
+      (let ((rule (car tests)))
+        (setq tests (car rule))
+        (if (funcall (psindicator--interpret-rule (cdr rule)) password)
+            (setq result (car rule)))))
+    result))
 
 (defun psindicator-password-validator (password)
   (let ((tests psindicator--tests)
