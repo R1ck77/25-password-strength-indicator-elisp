@@ -42,7 +42,7 @@
                 (alist-get rule-symbol psindicator--rule-function))
               rules))))
 
-(defun psindicator--interpret-rule (condition-or-conditions)
+(defun psindicator--interpret-conditions (condition-or-conditions)
   "Receives a list of condition symbols, return a single function"
   (lexical-let ((conditions (psindicator--condition-symbols-to-functions condition-or-conditions)))
     (lambda (password)
@@ -50,12 +50,21 @@
         (dolist (f conditions result)
           (setq result (funcall f result)))))))
 
+(defun psindicator--interpret-rule (rule)
+  "Receives a list of conditions (or lists of conditions) and returns a validator function"
+  (lexical-let ((condition-functions (seq-map 'psindicator--interpret-conditions
+                                              rule)))
+    (lambda (password)
+      (let ((result t))
+        (dolist (f condition-functions result)
+          (setq result (and result (funcall f password))))))))
+
 (defun psindicator--create-validator (rules)
   (lambda (x)
     (let ((result t))
-      (dolist (rules rule result)
-        (let ((rule-function (psindicator--interpret-rule rule)))
-         (setq result (and result (funcall rule-function x))))))))
+     (dolist (rule )))
+    
+))
 
 (defun psindicator--very-weak-password? (password)
   (and (not (psindicator--is-long? password))
