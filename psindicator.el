@@ -24,6 +24,39 @@
 (defconst psindicator--strong-password? '(long digits letters (no special)))
 (defconst psindicator--very-strong-password? '(long digits letters specials))
 
+(defconst psindicator--rule-function (list
+                                      (cons 'short (lambda (x) (not (psindicator--is-long? x))))
+                                      (cons 'long  'psindicator--is-long?)
+                                      (cons 'no 'not)
+                                      (cons 'digits 'psindicator--has-digits?)
+                                      (cons 'letters 'psindicator--has-letters?)
+                                      (cons 'special 'psindicator--has-special?)))
+
+(defun psindicator--condition-symbols-to-functions (condition-or-conditions)
+  "A single condition or a list of conditions enter, a list of functions in application order exits"
+  (let ((rules (if (listp condition-or-conditions)
+                   condition-or-conditions
+                 (list condition-or-conditions))))
+    (reverse
+     (seq-map (lambda (rule-symbol)
+                (alist-get rule-symbol psindicator--rule-function))
+              rules))))
+
+(defun psindicator--interpret-rule (condition-or-conditions)
+  "Receives a list of condition symbols, return a single function"
+  (lexical-let ((conditions (psindicator--condition-symbols-to-functions condition-or-conditions)))
+    (lambda (password)
+      (let ((result password))
+        (dolist (f conditions result)
+          (setq result (funcall f result)))))))
+
+(defun psindicator--create-validator (rules)
+  (lambda (x)
+    (let ((result t))
+      (dolist (rules rule result)
+        (let ((rule-function (psindicator--interpret-rule rule)))
+         (setq result (and result (funcall rule-function x))))))))
+
 (defun psindicator--very-weak-password? (password)
   (and (not (psindicator--is-long? password))
        (not (psindicator--has-letters? password))
