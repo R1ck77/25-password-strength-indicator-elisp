@@ -1,3 +1,16 @@
+(require 'cl)
+
+(defconst psindicator--very-weak-password? '(short (no letters) (no specials) digits))
+(defconst psindicator--weak-password? '(short (no digits) (no specials) letters))
+(defconst psindicator--strong-password? '(long digits letters (no specials)))
+(defconst psindicator--very-strong-password? '(long digits letters specials))
+
+(defconst psindicator--tests (list nil
+                                   psindicator--very-weak-password?
+                                   psindicator--weak-password?
+                                   psindicator--strong-password?
+                                   psindicator--very-strong-password?))
+
 
 (defconst psindicator--strength-to-assessment ["neither weak or strong" "very weak" "weak" "strong" "very strong"])
 
@@ -7,22 +20,11 @@
 (defun psindicator--has-letters? (string)
   (string-match "[a-zA-Z]" string))
 
-(defun psindicator--has-special? (string)
+(defun psindicator--has-specials? (string)
   (string-match "[^0-9a-zA-Z]" string))
 
 (defun psindicator--is-long? (string)
   (>= (length string) 8))
-
-(defconst psindicator--very-weak-password? '(short (no letters) (no special) digits))
-(defconst psindicator--weak-password? '(short (no digits) (no special) letters))
-(defconst psindicator--strong-password? '(long digits letters (no special)))
-(defconst psindicator--very-strong-password? '(long digits letters specials))
-
-(defconst psindicator--tests (list nil
-                                   psindicator--very-weak-password?
-                                   psindicator--weak-password?
-                                   psindicator--strong-password?
-                                   psindicator--very-strong-password?))
 
 (defconst psindicator--rule-function (list
                                       (cons 'short (lambda (x) (not (psindicator--is-long? x))))
@@ -30,7 +32,7 @@
                                       (cons 'no 'not)
                                       (cons 'digits 'psindicator--has-digits?)
                                       (cons 'letters 'psindicator--has-letters?)
-                                      (cons 'special 'psindicator--has-special?)))
+                                      (cons 'specials 'psindicator--has-specials?)))
 
 (defun psindicator--condition-symbols-to-functions (condition-or-conditions)
   "A single condition or a list of conditions enter, a list of functions in application order exits"
@@ -71,24 +73,23 @@
    (psindicator--enumerate
     (seq-map 'psindicator--interpret-rule rules))))
 
-(defun psindicator--test-password (password ordered-rules-list)
-  ;;; TODO/FIXME read the rules in order, check the password, go with the flow
-  (let ((result)
-        (tests ordered-rules-list))
-    (while (not result)
-      (let ((rule (car tests)))
-        (setq tests (car rule))
-        (if (funcall (psindicator--interpret-rule (cdr rule)) password)
-            (setq result (car rule)))))
+(defun psindicator--check-indexed-rule (password rule-index)
+  (when (funcall (car rule-index) password)
+    (cdr rule-index)))
+
+(defun psindicator--get-first-matching-index (password rule-index-pairs)
+  (let ((result nil)
+        (pairs rule-index-pairs))
+    (while (and (not result) pairs)
+      (setq result (psindicator--check-indexed-rule password (car pairs)))
+      (setq pairs (cdr pairs)))
     result))
 
-(defun psindicator-password-validator (password)
-  (let ((tests psindicator--tests)
-        (result nil))
-    (while (null result)
-      (setq result (funcall (car tests) password))
-      (setq tests (cdr tests)))
-    result))
+(defun psindicator--test-password (password evaluator-score-pairs)
+  (psindicator--get-first-matching-index password evaluator-score-pairs))
+
+(defun psindicator--test-password-with-default-rules (password)
+  (psindicator--test-password password (psindicator--get-evaluators psindicator--tests)))
 
 (defun psindicator--string-result (password evaluation-function)
   (message "The password '%s' is %s"
@@ -98,6 +99,6 @@
 (defun psindicator (password)
   (interactive "MEnter a password: ")
   (psindicator--string-result password
-                              'psindicator-password-validator))
+                              'psindicator--test-password-with-default-rules))
 
 (provide 'psindicator)
