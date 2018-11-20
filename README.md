@@ -6,4 +6,4 @@ The basic constraints of the exercise are satisfied.
 
 ### Usage
 
-Eval `psindicator.el`, then `M-x psindicator`. Prepare to be blown away!
+Eval `debug.el`: this will prompt for a password and show the feedback as a message. Yay.
