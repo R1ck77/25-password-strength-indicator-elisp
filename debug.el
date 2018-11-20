@@ -1,5 +1,5 @@
 (setq load-path (append load-path (list ".")))
 
-(require 'psindicator)
+(require 'psindicator-ui)
 
-(command-execute 'psindicator)
+(command-execute 'psindicator-ui)
