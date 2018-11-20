@@ -2,15 +2,16 @@
 (require 'psindicator)
 
 (defun psindicator--password-changed (widget &optional source event)
-  (psindicator (widget-value widget)))
+  (let ((content (widget-value widget)))
+    (if (> (length content) 0)
+        (psindicator content))))
 
 (defun psindicator--insert-widgets ()
   (widget-create 'editable-field
                  :size 13
                  :secret ?*
                  :notify 'psindicator--password-changed
-                 :format "Password: %v\n")
-  (widget-setup))
+                 :format "Password: %v\n"))
 
 (defun psindicator-ui ()
   (interactive)
@@ -19,6 +20,7 @@
   (let ((inhibit-read-only t))
     (erase-buffer))
   (remove-overlays)
-  (psindicator--insert-widgets))
+  (psindicator--insert-widgets)
+  (widget-setup))
 
 (provide 'psindicator-ui)
